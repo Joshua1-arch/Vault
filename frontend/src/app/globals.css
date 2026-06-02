@@ -1,0 +1,259 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap');
+
+:root {
+  --bg-color: #07070a;
+  --bg-gradient: radial-gradient(circle at 50% 0%, #15102a 0%, #07070a 100%);
+  --card-bg: rgba(18, 16, 28, 0.6);
+  --card-border: rgba(120, 110, 240, 0.15);
+  --card-border-glow: rgba(120, 110, 240, 0.35);
+  
+  --primary: #8a7cf0;
+  --primary-glow: rgba(138, 124, 240, 0.4);
+  --secondary: #e6b84a;
+  --secondary-glow: rgba(230, 184, 74, 0.4);
+  --accent: #ff5b7f;
+  
+  --text-primary: #f3f3f6;
+  --text-secondary: #9f9fad;
+  --text-muted: #646473;
+  
+  --glass-blur: blur(12px);
+  --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--bg-color);
+  background-image: var(--bg-gradient);
+  color: var(--text-primary);
+  font-family: 'Outfit', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+  line-height: 1.5;
+}
+
+/* Glass Card styling */
+.glass-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+  transition: var(--transition-smooth);
+}
+
+.glass-card:hover {
+  border-color: var(--card-border-glow);
+  box-shadow: 0 8px 32px 0 rgba(138, 124, 240, 0.1);
+}
+
+/* Typography styles */
+h1, h2, h3, h4 {
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, #ffffff 0%, #b2adcb 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 0.5rem;
+}
+
+.subtitle {
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+  margin-bottom: 2rem;
+}
+
+/* Custom interactive input fields */
+.form-group {
+  margin-bottom: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+input, textarea, select {
+  background: rgba(8, 7, 13, 0.6);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 14px 18px;
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 1rem;
+  transition: var(--transition-smooth);
+  width: 100%;
+}
+
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 15px var(--primary-glow);
+  background: rgba(12, 10, 20, 0.8);
+}
+
+textarea {
+  resize: vertical;
+  min-height: 120px;
+}
+
+/* Action Buttons */
+.btn {
+  background: linear-gradient(135deg, var(--primary) 0%, #6858e2 100%);
+  border: none;
+  border-radius: 12px;
+  color: #ffffff;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 14px 28px;
+  text-align: center;
+  transition: var(--transition-smooth);
+  box-shadow: 0 4px 15px rgba(138, 124, 240, 0.2);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(138, 124, 240, 0.4);
+}
+
+.btn:active {
+  transform: translateY(0);
+}
+
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--card-border);
+  box-shadow: none;
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--card-border-glow);
+  box-shadow: none;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Wax Seal and Sealed Envelope Animation styling */
+.wax-seal {
+  width: 90px;
+  height: 90px;
+  background: radial-gradient(circle, #b81d1d 0%, #7f1212 100%);
+  border-radius: 50%;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.5), inset 0 2px 4px rgba(255,255,255,0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+}
+
+.wax-seal::after {
+  content: '';
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  right: 5px;
+  bottom: 5px;
+  border: 2px dashed rgba(255,255,255,0.15);
+  border-radius: 50%;
+}
+
+.wax-seal.pulsing {
+  animation: sealPulse 2s infinite ease-in-out;
+}
+
+.wax-seal.unlocked {
+  background: radial-gradient(circle, #22c55e 0%, #15803d 100%);
+  box-shadow: 0 4px 15px rgba(34, 197, 94, 0.5);
+}
+
+@keyframes sealPulse {
+  0% { transform: scale(1); box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+  50% { transform: scale(1.05); box-shadow: 0 4px 20px rgba(127, 18, 18, 0.4); }
+  100% { transform: scale(1); box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+}
+
+/* Letter Content Layout (Revealed State) */
+.revealed-letter {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.25rem;
+  line-height: 1.8;
+  color: #eae9f0;
+  white-space: pre-wrap;
+  padding: 40px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.05);
+  box-shadow: inset 0 2px 10px rgba(0,0,0,0.4);
+  animation: letterFadeIn 1s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes letterFadeIn {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* General Layout utilities */
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 60px 20px;
+}
+
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 50px;
+  border-bottom: 1px solid var(--card-border);
+  padding-bottom: 20px;
+}
+
+.logo {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  background: linear-gradient(135deg, #ffffff 0%, var(--primary) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  cursor: pointer;
+}
+
+.footer {
+  margin-top: 60px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
