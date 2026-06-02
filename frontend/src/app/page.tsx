@@ -34,7 +34,7 @@ export default function WritePage() {
     const newDemo = !demoMode;
     setDemoMode(newDemo);
     if (newDemo) {
-      setRecipientAddress("0x897cCcE794dF3B2f523F40C5bE9FB07e9bB48041");
+      setRecipientAddress("0xec5D096738641dBF3099Ad630D91e922425c48D8");
       setLetter("This is a sample time-locked secret message created in Demo Mode on Story CDR.");
       setConditionType("timelock");
       
@@ -91,22 +91,29 @@ export default function WritePage() {
       let readConditionAddr = "";
       let readConditionData = "";
 
+      const abiCoder = ethers.AbiCoder.defaultAbiCoder();
+
       if (conditionType === "timelock") {
-        readConditionAddr = "0x166083e33fd2cb924d5b188f80b856a99bfc7d2c";
+        readConditionAddr = process.env.NEXT_PUBLIC_TIMELOCK_ADDRESS || "0x166083e33fd2cb924d5b188f80b856a99bfc7d2c";
         const unlockAtUnix = Math.floor(new Date(unlockAt).getTime() / 1000);
-        readConditionData = ethers.AbiCoder.defaultAbiCoder().encode(["uint256"], [BigInt(unlockAtUnix)]);
+        readConditionData = abiCoder.encode(["uint256"], [BigInt(unlockAtUnix)]);
       } else if (conditionType === "deadman") {
-        readConditionAddr = "0x9a736dd318d09ccc87cb4ed5f6528a13ed5ba692";
+        readConditionAddr = process.env.NEXT_PUBLIC_DEADMAN_ADDRESS || "0x9a736dd318d09ccc87cb4ed5f6528a13ed5ba692";
         const interval = parseInt(intervalSeconds, 10);
-        readConditionData = ethers.AbiCoder.defaultAbiCoder().encode(
+        readConditionData = abiCoder.encode(
           ["address", "address", "uint256"],
           [walletAddress as `0x${string}`, recipientAddress as `0x${string}`, BigInt(interval)]
         );
       } else if (conditionType === "multisig") {
-        readConditionAddr = "0xbaa6a2d58487a4363b01ff65f3d09a521147f0f7";
-        const signerList = signers.split(",").map(s => s.trim() as `0x${string}`);
+        readConditionAddr = process.env.NEXT_PUBLIC_MULTISIG_ADDRESS || "0xbaa6a2d58487a4363b01ff65f3d09a521147f0f7";
+        const signerList = signers.split(",").map(s => s.trim() as `0x${string}`).filter(s => ethers.isAddress(s));
         const th = parseInt(threshold, 10);
-        readConditionData = ethers.AbiCoder.defaultAbiCoder().encode(
+        
+        if (signerList.length === 0) {
+          throw new Error("Please enter at least one valid Ethereum address for signers.");
+        }
+        
+        readConditionData = abiCoder.encode(
           ["address[]", "uint256"],
           [signerList, BigInt(th)]
         );
@@ -114,7 +121,7 @@ export default function WritePage() {
 
       // OwnerWriteCondition restricting edits to the original sender
       const writeConditionAddr = "0x4C9bFC96d7092b590D497A191826C3dA2277c34B";
-      const writeConditionData = ethers.AbiCoder.defaultAbiCoder().encode(
+      const writeConditionData = abiCoder.encode(
         ["address"],
         [walletAddress as `0x${string}`]
       );
@@ -138,6 +145,7 @@ export default function WritePage() {
       // Encrypt locally using UUID-derived label (never touches server)
       const label = sdk.uuidToLabel(uuid);
       const globalPubKey = await cdrClient.observer.getGlobalPubKey();
+
       const ciphertext = await cdrClient.uploader.encryptDataKey({
         dataKey: messageBytes,
         globalPubKey,
@@ -164,12 +172,14 @@ export default function WritePage() {
           conditionType,
           conditionParams: {
             unlockAt,
-            intervalSeconds,
-            signers: signers.split(",").map(s => s.trim()),
+            intervalSeconds: parseInt(intervalSeconds, 10),
+            signers: signers.split(",").map(s => s.trim()).filter(Boolean),
             threshold: parseInt(threshold, 10)
           },
           recipientAddress,
-          senderAddress: walletAddress
+          senderAddress: walletAddress,
+          readConditionAddr,
+          readConditionData
         })
       });
 
@@ -200,15 +210,21 @@ export default function WritePage() {
 
       {/* Connection Indicator Alert */}
       <div className="glass-card flex-center" style={{ gap: "20px", marginBottom: "30px", padding: "16px 24px", justifyContent: "space-between", borderRadius: "14px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-          <span style={{ fontSize: "1.2rem" }}>{walletConnected ? "🟢" : "🔴"}</span>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <span style={{ 
+            width: "8px", 
+            height: "8px", 
+            borderRadius: "50%", 
+            background: walletConnected ? "#22c55e" : "#ff5b7f",
+            boxShadow: walletConnected ? "0 0 8px #22c55e" : "0 0 8px #ff5b7f"
+          }} />
           <span style={{ fontSize: "0.95rem", color: "var(--text-secondary)", fontWeight: 500 }}>
-            {walletConnected ? "Authorized Session Active" : "No Wallet Connected in Header"}
+            {walletConnected ? "Authorized Session Active" : "No Wallet Connected"}
           </span>
         </div>
         {!walletConnected && (
           <span style={{ fontSize: "0.85rem", color: "var(--accent)", fontWeight: 600 }}>
-            * Connect Wallet at the Top Right
+            Connect Wallet at the Top Right
           </span>
         )}
       </div>
@@ -216,7 +232,7 @@ export default function WritePage() {
       {/* Demo Mode Toggle */}
       <div className="glass-card flex-center" style={{ padding: "12px 20px", marginBottom: "30px", justifyContent: "space-between", borderRadius: "14px", border: "1px dashed var(--primary)" }}>
         <div style={{ textAlign: "left" }}>
-          <div style={{ fontSize: "0.95rem", fontWeight: "600", color: "var(--primary)" }}>⚡ Sandbox Demo Mode</div>
+          <div style={{ fontSize: "0.95rem", fontWeight: "600", color: "var(--primary)" }}>Sandbox Demo Mode</div>
           <div style={{ fontSize: "0.8rem", color: "var(--text-secondary)" }}>Auto-prefills a 2-minute timelocked demo vault</div>
         </div>
         <label className="switch" style={{ position: "relative", display: "inline-block", width: "50px", height: "26px" }}>
@@ -246,8 +262,11 @@ export default function WritePage() {
 
       {isSubmitting ? (
         <div className="glass-card flex-center" style={{ flexDirection: "column", gap: "20px", padding: "60px 40px", textAlign: "center" }}>
-          <div className="wax-seal pulsing">
-            <span style={{ fontSize: "2.2rem" }}>🔒</span>
+          <div className="wax-seal pulsing" style={{ width: "90px", height: "90px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: "#ffffff" }}>
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
           </div>
           <h2 style={{ fontSize: "1.6rem" }}>Sealing Your Message</h2>
           <p style={{ color: "var(--text-secondary)", maxWidth: "400px", minHeight: "60px" }}>{submitStep}</p>
@@ -293,7 +312,10 @@ export default function WritePage() {
                 }}
                 onClick={() => setConditionType("timelock")}
               >
-                <span style={{ fontSize: "1.8rem" }}>⏳</span>
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: conditionType === "timelock" ? "var(--primary)" : "var(--text-muted)", transition: "0.2s" }}>
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
                 <span style={{ fontWeight: 600, fontSize: "0.95rem" }}>Timelock</span>
               </div>
 
@@ -311,7 +333,9 @@ export default function WritePage() {
                 }}
                 onClick={() => setConditionType("deadman")}
               >
-                <span style={{ fontSize: "1.8rem" }}>💀</span>
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: conditionType === "deadman" ? "var(--secondary)" : "var(--text-muted)", transition: "0.2s" }}>
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                </svg>
                 <span style={{ fontWeight: 600, fontSize: "0.95rem" }}>Dead-Man</span>
               </div>
 
@@ -329,7 +353,12 @@ export default function WritePage() {
                 }}
                 onClick={() => setConditionType("multisig")}
               >
-                <span style={{ fontSize: "1.8rem" }}>👥</span>
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: conditionType === "multisig" ? "var(--accent)" : "var(--text-muted)", transition: "0.2s" }}>
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="9" cy="7" r="4"></circle>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
                 <span style={{ fontWeight: 600, fontSize: "0.95rem" }}>Multi-Sig</span>
               </div>
             </div>
@@ -363,8 +392,8 @@ export default function WritePage() {
                   <option value="2592000">30 Days</option>
                 </select>
               </div>
-              <p style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>
-                You must periodically call the dead-man switch `checkIn()` function. If you are inactive for this interval, the recipient can reveal the letter.
+              <p style={{ fontSize: "0.8rem", color: "var(--text-muted)", lineHeight: "1.4" }}>
+                Requires periodic confirmation to keep the envelope locked. If confirmation is missed for this interval, the recipient becomes authorized to decrypt.
               </p>
             </div>
           )}
@@ -392,17 +421,21 @@ export default function WritePage() {
                 />
               </div>
               <p style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>
-                Unlocks only when {threshold} out of the specified signers register their approvals on-chain.
+                Unlocks only when the required number of specified signers register their approvals on-chain.
               </p>
             </div>
           )}
 
-          <button className="btn" type="submit" disabled={!walletConnected} style={{ marginTop: "10px" }}>
-            🔒 Seal Envelope on Story CDR
+          <button className="btn flex-center" type="submit" disabled={!walletConnected} style={{ marginTop: "10px", gap: "8px" }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: "#ffffff" }}>
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
+            Seal Envelope on Story CDR
           </button>
           {!walletConnected && (
             <p style={{ color: "var(--accent)", fontSize: "0.85rem", textAlign: "center", fontWeight: 500 }}>
-              * Please connect your wallet in the header to authorize secure envelope allocation.
+              Please connect your wallet in the header to authorize secure envelope allocation.
             </p>
           )}
         </form>

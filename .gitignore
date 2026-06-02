@@ -25,6 +25,7 @@ coverage.json
 .env.test.local
 .env.production.local
 *.private
+.env.example
 
 # Local Custodian database sandbox states (ignore test letters)
 backend/db.json

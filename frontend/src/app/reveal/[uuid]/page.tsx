@@ -99,7 +99,9 @@ export default function RevealPage() {
   if (!isConnected) {
     return (
       <div className="glass-card flex-center" style={{ minHeight: "350px", flexDirection: "column", gap: "20px", padding: "40px", textAlign: "center" }}>
-        <span style={{ fontSize: "3rem" }}>🔌</span>
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: "var(--accent)" }}>
+          <path d="M18.36 6.64a9 9 0 0 1 0 12.72M19.78 5.22a11 11 0 0 1 0 15.56M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path>
+        </svg>
         <h2 style={{ fontSize: "1.6rem" }}>Wallet Disconnected</h2>
         <p style={{ color: "var(--text-secondary)", maxWidth: "400px", marginBottom: "10px" }}>
           Please connect your wallet in the top header to reveal this letter and verify your recipient address.
@@ -112,7 +114,11 @@ export default function RevealPage() {
   if (!walletClient || !publicClient) {
     return (
       <div className="glass-card flex-center" style={{ minHeight: "350px", flexDirection: "column", gap: "15px" }}>
-        <div className="wax-seal pulsing"><span style={{ fontSize: "2.2rem" }}>🔌</span></div>
+        <div className="wax-seal pulsing" style={{ width: "90px", height: "90px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: "#ffffff" }}>
+            <path d="M18.36 6.64a9 9 0 0 1 0 12.72M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4"></path>
+          </svg>
+        </div>
         <h2>Initializing Secured Session...</h2>
         <p style={{ color: "var(--text-secondary)", textAlign: "center" }}>
           Connecting browser wallet client for on-chain verification...
@@ -124,7 +130,12 @@ export default function RevealPage() {
   if (loading) {
     return (
       <div className="glass-card flex-center" style={{ minHeight: "350px", flexDirection: "column", gap: "15px" }}>
-        <div className="wax-seal pulsing"><span style={{ fontSize: "2.2rem" }}>🔑</span></div>
+        <div className="wax-seal pulsing" style={{ width: "90px", height: "90px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: "#ffffff" }}>
+            <circle cx="7.5" cy="15.5" r="5.5"></circle>
+            <path d="M21 2L11.5 11.5M17 6l3 3"></path>
+          </svg>
+        </div>
         <h2>Decrypting Envelope Content...</h2>
         <p style={{ color: "var(--text-secondary)", textAlign: "center" }}>
           Broadcasting reveal request to Story CDR nodes for validator threshold decryption...
@@ -136,10 +147,16 @@ export default function RevealPage() {
   if (isSender) {
     return (
       <div className="glass-card flex-center" style={{ minHeight: "350px", flexDirection: "column", gap: "20px", textAlign: "center", border: "1px solid var(--accent)", boxShadow: "0 0 30px rgba(255, 75, 120, 0.15)" }}>
-        <div className="wax-seal animate-bounce" style={{ background: "linear-gradient(135deg, #ff4b78, #a82a4d)", boxShadow: "0 0 20px rgba(255, 75, 120, 0.4)", animation: "none" }}>
-          <span style={{ fontSize: "2.2rem" }}>📜</span>
+        <div className="wax-seal" style={{ width: "90px", height: "90px", display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(135deg, #ff4b78, #a82a4d)", boxShadow: "0 0 20px rgba(255, 75, 120, 0.4)", animation: "none" }}>
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: "#ffffff" }}>
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+            <polyline points="10 9 9 9 8 9"></polyline>
+          </svg>
         </div>
-        <h2 style={{ fontSize: "1.8rem", color: "#ff4b78", fontFamily: "'Playfair Display', serif" }}>Sealed Beyond Reach</h2>
+        <h2 style={{ fontSize: "1.8rem", color: "#ff4b78" }}>Sealed Beyond Reach</h2>
         <p style={{ color: "var(--text-secondary)", maxWidth: "460px", lineHeight: "1.6" }}>
           You sealed this letter. Its contents are beyond your reach now. Once a message is secured in VaultLetter, the act of sealing is absolute and irreversible—even for the sender.
         </p>
@@ -154,8 +171,11 @@ export default function RevealPage() {
   if (error) {
     return (
       <div className="glass-card" style={{ padding: "40px", textAlign: "center" }}>
-        <span style={{ fontSize: "3rem" }}>🔒</span>
-        <h2 style={{ marginTop: "15px", color: "var(--accent)" }}>Decryption Denied</h2>
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: "var(--accent)", marginBottom: "15px" }}>
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+        </svg>
+        <h2 style={{ color: "var(--accent)" }}>Decryption Denied</h2>
         <p style={{ color: "var(--text-secondary)", margin: "15px 0" }}>
           {error}
         </p>
@@ -189,7 +209,7 @@ export default function RevealPage() {
       `}</style>
 
       <div style={{ textAlign: "center", marginBottom: "40px" }}>
-        <h1 style={{ fontSize: "2.5rem" }}>✉️ Decrypted Letter</h1>
+        <h1 style={{ fontSize: "2.5rem" }}>Decrypted Letter</h1>
         <p className="subtitle" style={{ fontSize: "0.95rem" }}>
           Envelope UUID: <span style={{ fontFamily: "monospace", color: "var(--primary)" }}>{uuid}</span>
         </p>

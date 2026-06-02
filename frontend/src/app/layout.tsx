@@ -20,7 +20,7 @@ export default function RootLayout({
           <div className="container">
             <header className="header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <a href="/" className="logo" style={{ textDecoration: "none" }}>
-                ✉️ VaultLetter
+                VaultLetter
               </a>
               
               <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
