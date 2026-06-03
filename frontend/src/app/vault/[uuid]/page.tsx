@@ -217,8 +217,12 @@ export default function VaultPage() {
   const isCurrentlyUnlocked = unlocked || (localTimeRemaining !== null && localTimeRemaining === 0);
 
   // Address identity checks for contextual customizations
-  const isRecipient = activeAccount && recipientAddress && activeAccount.toLowerCase() === recipientAddress.toLowerCase();
+  const isRecipient = conditionType === "multisig"
+    ? activeAccount && vault.conditionParams.signers?.some((s: string) => s.toLowerCase() === activeAccount.toLowerCase())
+    : activeAccount && recipientAddress && activeAccount.toLowerCase() === recipientAddress.toLowerCase();
   const isSender = activeAccount && senderAddress && activeAccount.toLowerCase() === senderAddress.toLowerCase();
+  const hasAlreadyApproved = conditionType === "multisig" && activeAccount && 
+    approvals?.some((a: any) => a.signer.toLowerCase() === activeAccount.toLowerCase() && a.approved);
 
   return (
     <div style={{ maxWidth: "720px", margin: "0 auto" }}>
@@ -251,38 +255,53 @@ export default function VaultPage() {
           <h2 style={{ fontSize: "1.8rem", color: isCurrentlyUnlocked ? "#22c55e" : "#ff5b7f" }}>
             {isCurrentlyUnlocked ? "Vault Unlocked" : "Sealed & Encrypted"}
           </h2>
-          <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "8px", flexWrap: "wrap", marginTop: "10px" }}>
-            <span style={{ color: "var(--text-secondary)", fontSize: "0.95rem" }}>
-              Recipient Address: <span style={{ fontFamily: "monospace" }}>{recipientAddress.slice(0, 8)}...{recipientAddress.slice(-6)}</span>
-            </span>
-            {isRecipient && (
-              <span style={{ 
-                padding: "4px 10px", 
-                borderRadius: "20px", 
-                background: "rgba(34, 197, 94, 0.12)", 
-                border: "1px solid rgba(34, 197, 94, 0.4)", 
-                color: "#22c55e", 
-                fontSize: "0.78rem", 
-                fontWeight: 600,
-                letterSpacing: "0.02em"
-              }}>
-                Recipient (You)
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px", marginTop: "10px" }}>
+            {conditionType === "multisig" ? (
+              <div style={{ color: "var(--text-secondary)", fontSize: "0.95rem", display: "flex", flexDirection: "column", gap: "6px", alignItems: "center" }}>
+                <span>Recipient Signers:</span>
+                <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", justifyContent: "center" }}>
+                  {vault.conditionParams.signers?.map((signer: string, i: number) => (
+                    <span key={i} style={{ fontFamily: "monospace", background: "rgba(255,255,255,0.05)", padding: "4px 8px", borderRadius: "6px", fontSize: "0.85rem" }}>
+                      {signer.slice(0, 8)}...{signer.slice(-6)}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <span style={{ color: "var(--text-secondary)", fontSize: "0.95rem" }}>
+                Recipient Address: <span style={{ fontFamily: "monospace" }}>{recipientAddress.slice(0, 8)}...{recipientAddress.slice(-6)}</span>
               </span>
             )}
-            {isSender && (
-              <span style={{ 
-                padding: "4px 10px", 
-                borderRadius: "20px", 
-                background: "rgba(124, 58, 237, 0.12)", 
-                border: "1px solid rgba(124, 58, 237, 0.4)", 
-                color: "#c084fc", 
-                fontSize: "0.78rem", 
-                fontWeight: 600,
-                letterSpacing: "0.02em"
-              }}>
-                Sender (You)
-              </span>
-            )}
+            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", justifyContent: "center", marginTop: "4px" }}>
+              {isRecipient && (
+                <span style={{ 
+                  padding: "4px 10px", 
+                  borderRadius: "20px", 
+                  background: "rgba(34, 197, 94, 0.12)", 
+                  border: "1px solid rgba(34, 197, 94, 0.4)", 
+                  color: "#22c55e", 
+                  fontSize: "0.78rem", 
+                  fontWeight: 600,
+                  letterSpacing: "0.02em"
+                }}>
+                  Recipient (You)
+                </span>
+              )}
+              {isSender && (
+                <span style={{ 
+                  padding: "4px 10px", 
+                  borderRadius: "20px", 
+                  background: "rgba(124, 58, 237, 0.12)", 
+                  border: "1px solid rgba(124, 58, 237, 0.4)", 
+                  color: "#c084fc", 
+                  fontSize: "0.78rem", 
+                  fontWeight: 600,
+                  letterSpacing: "0.02em"
+                }}>
+                  Sender (You)
+                </span>
+              )}
+            </div>
           </div>
         </div>
 
@@ -406,13 +425,20 @@ export default function VaultPage() {
                   })}
                 </div>
                 <div style={{ marginTop: "10px", display: "flex", gap: "12px", justifyContent: "center" }}>
-                  <button className="btn flex-center" onClick={handleApprove} disabled={isApproving} style={{ gap: "8px" }}>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: "#ffffff" }}>
-                      <path d="M12 20h9"></path>
-                      <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path>
-                    </svg>
-                    Approve Vault Release
-                  </button>
+                  {isRecipient && (
+                    <button 
+                      className="btn flex-center" 
+                      onClick={handleApprove} 
+                      disabled={isApproving || hasAlreadyApproved} 
+                      style={{ gap: "8px" }}
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: "#ffffff" }}>
+                        <path d="M12 20h9"></path>
+                        <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path>
+                      </svg>
+                      {hasAlreadyApproved ? "Approved" : "Approve Vault Release"}
+                    </button>
+                  )}
                   <button className="btn btn-secondary flex-center" onClick={handleShareTwitter} style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style={{ color: "#ffffff" }}>
                       <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path>

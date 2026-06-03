@@ -222,6 +222,7 @@ app.get("/api/check-condition/:uuid", async (req, res) => {
       conditionType: vault.conditionType,
       conditionParams: vault.conditionParams,
       recipientAddress: vault.recipientAddress,
+      senderAddress: vault.senderAddress,
       unlocked,
       timeRemaining,
       approvals
@@ -255,13 +256,24 @@ app.post("/api/reveal/:uuid", async (req, res) => {
     const recipient = vault.recipientAddress ? vault.recipientAddress.toLowerCase() : "";
 
     // 1. Sender lockout check (MUST run first, before the recipient check)
-    if (sender && caller === sender) {
+    // For multisig vaults, we do not lock out the sender if they are listed as one of the signers.
+    const isAllowedSigner = vault.conditionType === "multisig" &&
+      (vault.conditionParams.signers || []).map((s: string) => s.toLowerCase()).includes(caller);
+
+    if (!isAllowedSigner && sender && caller === sender) {
       return res.status(403).json({ error: "You sealed this letter. Once sent, even you cannot read it." });
     }
 
     // 2. Only the recipient can reveal
-    if (caller !== recipient) {
-      return res.status(403).json({ error: "This letter was not addressed to you." });
+    if (vault.conditionType === "multisig") {
+      const signers = (vault.conditionParams.signers || []).map((s: string) => s.toLowerCase());
+      if (!signers.includes(caller)) {
+        return res.status(403).json({ error: "This letter was not addressed to you (you are not a signer)." });
+      }
+    } else {
+      if (caller !== recipient) {
+        return res.status(403).json({ error: "This letter was not addressed to you." });
+      }
     }
 
     // 3. Perform dynamic on-chain sanity checks
@@ -270,7 +282,7 @@ app.post("/api/reveal/:uuid", async (req, res) => {
       address: vault.readConditionAddr as `0x${string}`,
       abi: CONDITION_ABI,
       functionName: "checkReadCondition",
-      args: [Number(uuid), accessAuxData, vault.readConditionData as `0x${string}`, vault.recipientAddress as `0x${string}`]
+      args: [Number(uuid), accessAuxData, vault.readConditionData as `0x${string}`, callerAddress as `0x${string}`]
     });
 
     if (!unlockedForRecipient) {

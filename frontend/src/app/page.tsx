@@ -60,8 +60,18 @@ export default function WritePage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!letter || !recipientAddress) {
-      alert("Please fill out the letter content and recipient address.");
+    if (!letter) {
+      alert("Please fill out the letter content.");
+      return;
+    }
+
+    if (conditionType !== "multisig" && !recipientAddress) {
+      alert("Please fill out the recipient address.");
+      return;
+    }
+
+    if (conditionType === "multisig" && !signers.trim()) {
+      alert("Please enter at least one signer address.");
       return;
     }
 
@@ -90,6 +100,7 @@ export default function WritePage() {
       // Encode read condition data based on selection
       let readConditionAddr = "";
       let readConditionData = "";
+      let recipientAddrToRegister = recipientAddress;
 
       const abiCoder = ethers.AbiCoder.defaultAbiCoder();
 
@@ -117,6 +128,7 @@ export default function WritePage() {
           ["address[]", "uint256"],
           [signerList, BigInt(th)]
         );
+        recipientAddrToRegister = signerList[0]; // Set recipient address to first signer for registration compatibility
       }
 
       // OwnerWriteCondition restricting edits to the original sender
@@ -176,7 +188,7 @@ export default function WritePage() {
             signers: signers.split(",").map(s => s.trim()).filter(Boolean),
             threshold: parseInt(threshold, 10)
           },
-          recipientAddress,
+          recipientAddress: recipientAddrToRegister,
           senderAddress: walletAddress,
           readConditionAddr,
           readConditionData
@@ -273,27 +285,6 @@ export default function WritePage() {
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="glass-card" style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-          <div className="form-group">
-            <label>Recipient Address</label>
-            <input
-              type="text"
-              placeholder="0xrecipient..."
-              value={recipientAddress}
-              onChange={(e) => setRecipientAddress(e.target.value)}
-              required
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Letter Content</label>
-            <textarea
-              placeholder="Write your secret letter here..."
-              value={letter}
-              onChange={(e) => setLetter(e.target.value)}
-              required
-            />
-          </div>
-
           {/* Condition Type Picker */}
           <div className="form-group">
             <label>Cryptographic Unlock Condition</label>
@@ -425,6 +416,31 @@ export default function WritePage() {
               </p>
             </div>
           )}
+
+          {/* Recipient Address (conditionally shown, omitted for multisig) */}
+          {conditionType !== "multisig" && (
+            <div className="form-group">
+              <label>Recipient Address</label>
+              <input
+                type="text"
+                placeholder="0xrecipient..."
+                value={recipientAddress}
+                onChange={(e) => setRecipientAddress(e.target.value)}
+                required
+              />
+            </div>
+          )}
+
+          {/* Letter Content */}
+          <div className="form-group">
+            <label>Letter Content</label>
+            <textarea
+              placeholder="Write your secret letter here..."
+              value={letter}
+              onChange={(e) => setLetter(e.target.value)}
+              required
+            />
+          </div>
 
           <button className="btn flex-center" type="submit" disabled={!walletConnected} style={{ marginTop: "10px", gap: "8px" }}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: "#ffffff" }}>
